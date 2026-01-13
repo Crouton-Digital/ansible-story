@@ -7,7 +7,7 @@ dedicated:
         - state: present
           name: story_main
 
-# MAINNETST
+# MAINNET
 story_mainnets:
   hosts:
     story_main:
@@ -30,9 +30,6 @@ all:
       - state: present
         description: Maksim
         pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtZ4mnUjXRzNZRcIiTr9PZGeb7EqDdanqZLEDO8yup/VOdBtzLRdckR2GH9K/6dJrc5pHsath6wCjVW78Cx6tYRwz9iqeyx+4U2tXeAwY5Xbs4wTiJO9YkrPCI50IXyIPp42U0yKx+niTkfT7dkSPNowrHlhLiKBHo/0YgMM+rKZIZUjjMMeocJC2bBPczRU0ukpGBNcbzMHTEjuN+o+Qs/8xrZgmbRcknKF507D+ft+pSPgKDJ+6egfYRfd+gUdYWla8TocIcAKol7NjnEwRsGYTR0AcjeD0fLAVsQAkzytAEYrDT360fHb6P8xdEUHCgCmjNLpos4fSIvpPD2LsN maxi@MacBook-Pro-Maxim.local"
-      - state: present
-        description: TMKMS
-        pubkey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHeGTLCrclRJNH2Bj/mphk0wFsCwcL+tfOR3sYMfAS+9 root@tmkms-monitoring"
     time_zone: UTC
     network_group: '{{ group_names[0].split(''_'')[1] }}'
     project_group: '{{ group_names[0].split(''_'')[0] }}'
