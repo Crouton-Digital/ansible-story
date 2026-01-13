@@ -6,8 +6,15 @@
 
 - name: Download story-geth binary to $HOME/go/bin/story-geth
   ansible.builtin.get_url:
-    url: "https://github.com/piplabs/story-geth/releases/download/v{{ node_version }}/geth-linux-amd64"
+    url: "https://github.com/piplabs/story-geth/releases/download/{{ story_geth_version }}/geth-linux-amd64"
     dest: "{{ user_dir }}/go/bin/{{ daemon_geth }}"
+    mode: "0755"
+    force: true
+
+- name: Download story binary to $HOME/go/bin/story
+  ansible.builtin.get_url:
+    url: "https://github.com/piplabs/story/releases/download/v{{ node_version }}/story-linux-amd64"
+    dest: "{{ user_dir }}/go/bin/{{ daemon }}"
     mode: "0755"
     force: true
 
@@ -20,36 +27,30 @@
     - "{{ user_dir }}/{{ folder }}/story"
     - "{{ user_dir }}/{{ folder }}/geth"
 
-- name: Remove old story source directory
-  ansible.builtin.file:
-    path: "{{ user_dir }}/story"
-    state: absent
-
-- name: Clone story repository
-  ansible.builtin.git:
-    repo: "https://github.com/piplabs/story"
-    dest: "{{ user_dir }}/story"
-    version: "v{{ node_version }}"
-    depth: 1
-    force: true
-
-- name: Build story binary
+- name: Initialize cosmovisor for story
   ansible.builtin.command:
-    cmd: go build -o story ./client
-    chdir: "{{ user_dir }}/story"
+    cmd: >
+      cosmovisor init {{ user_dir }}/go/bin/story
+  args:
+    creates: "{{ user_dir }}/.story/story/cosmovisor"
   environment:
-    GO111MODULE: "on"
     PATH: '{{ path }}'
     GOPATH: '{{ user_dir }}/go'
-  args:
-    creates: "{{ user_dir }}/story/story"
+    DAEMON_NAME: "{{ daemon }}"
+    DAEMON_HOME: "{{ user_dir }}/{{ folder }}/story"
 
-- name: Install story binary to $HOME/go/bin
-  ansible.builtin.copy:
-    src: "{{ user_dir }}/story/story"
-    dest: "{{ user_dir }}/go/bin/{{ daemon }}"
+- name: Ensure cosmovisor upgrade dir exists
+  ansible.builtin.file:
+    path: "{{ user_dir }}/{{ folder }}/story/cosmovisor/upgrades/{{ upgrade_folder }}/bin"
+    state: directory
     mode: "0755"
-    remote_src: true
+
+- name: Download story binary for upgrade
+  ansible.builtin.get_url:
+    url: "https://github.com/piplabs/story/releases/download/v{{ node_version }}/story-linux-amd64"
+    dest: "{{ user_dir }}/{{ folder }}/story/cosmovisor/upgrades/{{ upgrade_folder }}/bin"
+    mode: "0755"
+    force: true
 
 - name: Initialize story node (only once)
   ansible.builtin.command:

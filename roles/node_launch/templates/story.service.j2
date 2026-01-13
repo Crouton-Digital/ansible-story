@@ -1,15 +1,22 @@
 [Unit]
 Description=Story Service
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 User={{ ansible_user }}
-WorkingDirectory={{ user_dir }}/{{ folder }}/story
-ExecStart=$(which story) run
+Environment="DAEMON_NAME={{ daemon }}"
+Environment="DAEMON_HOME={{ user_dir }}/{{ folder }}/story"
+Environment="DAEMON_RESTART_AFTER_UPGRADE=true"
+Environment="UNSAFE_SKIP_BACKUP=true"
+Environment="DAEMON_DATA_BACKUP_DIR={{ user_dir }}/{{ folder }}/story/data"
+Environment="PATH=/home/story_main/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
+WorkingDirectory={{ user_dir }}/{{ folder }}/story
+ExecStart={{ user_dir }}/go/bin/cosmovisor run run
 Restart=on-failure
 RestartSec=5
 LimitNOFILE=65535
+
 [Install]
 WantedBy=multi-user.target
-

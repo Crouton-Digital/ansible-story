@@ -9,3 +9,8 @@ ansible-playbook main.yml -t "start" -e "target=story_main"
 ```
 
 
+systemctl start story_mainnet
+journalctl -f -u story_mainnet
+
+systemctl start story-geth_mainnet
+journalctl -f -u story-geth_mainnet

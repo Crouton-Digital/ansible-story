@@ -1,0 +1,65 @@
+---
+- name: Remove old $HOME/story-geth if exists
+  ansible.builtin.file:
+    path: "{{ user_dir }}/{{ daemon_geth }}"
+    state: absent
+
+- name: Download story-geth binary to $HOME/go/bin/story-geth
+  ansible.builtin.get_url:
+    url: "https://github.com/piplabs/story-geth/releases/download/v{{ node_version }}/geth-linux-amd64"
+    dest: "{{ user_dir }}/go/bin/{{ daemon_geth }}"
+    mode: "0755"
+    force: true
+
+- name: Ensure story directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ user_dir }}/{{ folder }}/story"
+    - "{{ user_dir }}/{{ folder }}/geth"
+
+- name: Remove old story source directory
+  ansible.builtin.file:
+    path: "{{ user_dir }}/story"
+    state: absent
+
+- name: Clone story repository
+  ansible.builtin.git:
+    repo: "https://github.com/piplabs/story"
+    dest: "{{ user_dir }}/story"
+    version: "v{{ node_version }}"
+    depth: 1
+    force: true
+
+- name: Build story binary
+  ansible.builtin.command:
+    cmd: go build -o story ./client
+    chdir: "{{ user_dir }}/story"
+  environment:
+    GO111MODULE: "on"
+    PATH: '{{ path }}'
+    GOPATH: '{{ user_dir }}/go'
+  args:
+    creates: "{{ user_dir }}/story/story"
+
+- name: Install story binary to $HOME/go/bin
+  ansible.builtin.copy:
+    src: "{{ user_dir }}/story/story"
+    dest: "{{ user_dir }}/go/bin/{{ daemon }}"
+    mode: "0755"
+    remote_src: true
+
+- name: Initialize story node (only once)
+  ansible.builtin.command:
+    cmd: >
+      story init
+      --moniker {{ moniker }}
+      --network {{ chain_id }}
+  environment:
+    PATH: '{{ path }}'
+    GOPATH: '{{ user_dir }}/go'
+  args:
+    creates: "{{ user_dir }}/{{ folder }}/story/config/node_key.json"
+

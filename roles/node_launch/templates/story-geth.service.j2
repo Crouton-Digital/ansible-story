@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 User={{ ansible_user }}
-ExecStart=$(which story-geth) --story --syncmode full \
+ExecStart={{ user_dir }}/go/bin/{{ daemon_geth }} --story --syncmode full \
 --http --http.api eth,net,web3,engine --http.vhosts '*' \
 --http.addr 0.0.0.0 --http.port {{ custom_port_prefix }}545 \
 --authrpc.port {{ custom_port_prefix }}551 \
