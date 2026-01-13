@@ -1,0 +1,29 @@
+---
+- name: Install ufw
+  apt:
+    name: ufw
+    state: present
+    update_cache: yes
+
+- name: Open ssh port
+  ufw:
+    rule: limit
+    port: '{{ ansible_port }}'
+    proto: tcp
+
+- name: Open HTTP for nginx port
+  ufw:
+    rule: limit
+    port: '80'
+    proto: tcp
+
+- name: Allow access from Monitoring server
+  ufw:
+    rule: allow
+    src: '{{ monitoring_server }}'
+    comment: 'Monitor'
+  when: monitoring_server is defined
+
+- name: Enable firewall
+  ufw:
+    state: enabled

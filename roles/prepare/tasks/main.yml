@@ -1,0 +1,40 @@
+---
+- meta: end_play
+  when: (prepare is defined) and (prepare|bool is false)
+
+- name: Update and upgrade the machine
+  apt:
+    upgrade: dist
+    update_cache: true
+
+- name: set hostname and timezone
+  import_tasks: hostname_timezone.yml
+
+- name: install node_exporter
+  import_tasks: node_exporter.yml
+  when: node_exporter|bool == true
+
+- name: install smartctl_exporter
+  import_tasks: smartctl_exporter.yml
+  when: node_exporter|bool == true
+  
+#- name: install promtail
+#  import_tasks: promtail.yml
+#  when: promtail|bool == true
+
+- name: firewall setup
+  import_tasks: firewall.yml
+
+- name: logrotate setup
+  import_tasks: logs-rotate.yml
+
+- name: install nginx
+  import_tasks: nginx.yml
+
+- name: install cosmos software
+  import_tasks: cosmos_software.yml
+  when: cosmos_software|default(true)|bool == true
+
+#- name: add targets on monitoring host
+#  import_tasks: update_prometheus_config.yml
+#  when: node_exporter|bool == true and type is not defined

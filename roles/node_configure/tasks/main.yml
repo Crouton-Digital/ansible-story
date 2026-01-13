@@ -1,0 +1,68 @@
+---
+
+- name: Adjust config.toml
+  community.general.ini_file:
+    path: >-
+      {{ user_dir }}/{{ folder }}/story/config/config.toml
+    section: '{{ item.section }}'
+    option: '{{ item.option }}'
+    value: '{{ item.value }}'
+    mode: '0660'
+    state: present
+  with_items: '{{ config_toml }}'
+
+- name: Adjust story.toml
+  community.general.ini_file:
+    path: >-
+      {{ user_dir }}/{{ folder }}/story/config/story.toml
+    section: '{{ item.section }}'
+    option: '{{ item.option }}'
+    value: '{{ item.value }}'
+    mode: '0660'
+    state: present
+  with_items: '{{ story_toml }}'
+
+- name: register public ip
+  uri:
+    url: 'https://api.ipify.org?format=json'
+  register: public_ip
+
+- name: Set up external address
+  community.general.ini_file:
+    path: >-
+      {{ user_dir }}/{{ folder }}/story/config/config.toml
+    section: p2p
+    option: external_address
+    value: '"{{ public_ip.json.ip }}:{{ custom_port_prefix }}56"'
+    mode: '0660'
+    state: present
+
+- name: Update peers in config.toml file
+  lineinfile:
+    path: '{{ user_dir }}/{{ folder }}/story/config/config.toml'
+    regexp: '^persistent_peers ='
+    line: 'persistent_peers = "{{ peers }}"'
+    state: present
+  when: peers is defined
+
+- name: Update seeds in config.toml file
+  lineinfile:
+    path: '{{ user_dir }}/{{ folder }}/story/config/config.toml'
+    regexp: '^seeds ='
+    line: 'seeds = "{{ seeds }}"'
+    state: present
+  when: seeds is defined
+
+# Firewall rules
+
+- name: Allow story ports via UFW
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    comment: "{{ item.comment }}"
+  loop:
+    - { port: "{{ custom_port_prefix }}303", proto: tcp, comment: story_geth_p2p_port }
+    - { port: "{{ custom_port_prefix }}303", proto: udp, comment: story_geth_p2p_port }
+    - { port: "{{ custom_port_prefix }}656", proto: tcp, comment: story_p2p_port }

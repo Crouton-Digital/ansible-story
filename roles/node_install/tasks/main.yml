@@ -1,0 +1,34 @@
+---
+
+- name: download pre-installed binary
+  block:
+    - name: Install Go
+      include_tasks: install_go.yml
+    - name: Install Story
+      include_tasks: binary_story.yml
+      when:
+        - network is defined
+        - network in ['story',]
+
+#- name: libwasmvm.x86_64.so download binary
+#  get_url:
+#    url: '{{ wasm_binary }}'
+#    dest: '/tmp/libwasmvm.x86_64.so'
+#    mode: '0766'
+#    force: yes
+#  become: yes
+#  when: wasm_binary is defined
+#
+#- name: Move libwasmvm.x86_64.so
+#  command: sudo mv /tmp/libwasmvm.x86_64.so /usr/lib/libwasmvm.x86_64.so
+#  become: yes
+#  when: wasm_binary is defined
+
+- name: Recursively change ownership of a directory
+  ansible.builtin.file:
+    path: "{{ user_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: true

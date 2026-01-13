@@ -1,0 +1,23 @@
+- name: copy service files
+  become: true
+  template:
+    src: '{{ item }}.service.j2'
+    dest: '/etc/systemd/system/{{ item }}_{{ network_type }}.service'
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - story
+    - story-geth
+
+- name: Enable services
+  become: true
+  systemd:
+    name: '{{ item }}_{{ network_type }}'
+    state: stopped
+    daemon_reload: yes
+    enabled: yes
+  loop:
+    - story
+    - story-geth
+

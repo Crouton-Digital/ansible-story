@@ -1,0 +1,75 @@
+---
+- name: Prepare
+  hosts: '{{ target }}'
+  become: true
+  gather_facts: false
+  vars_files:
+    - '{{ var_file }}'
+  roles:
+    - prepare
+  tags:
+    - never
+    - prepare
+- name: Sync Users
+  hosts: '{{ target }}'
+  become: true
+  gather_facts: false
+  vars_files:
+    - '{{ var_file }}'
+  roles:
+    - users
+  tags:
+    - never
+    - prepare
+    - sync_users
+- name: Install
+  hosts: '{{ target }}'
+  gather_facts: false
+  vars_files:
+    - '{{ var_file }}'
+  roles:
+    - node_install
+  tags:
+    - never
+    - install
+- name: Configure
+  hosts: '{{ target }}'
+  gather_facts: false
+  vars_files:
+    - '{{ var_file }}'
+  roles:
+    - node_configure
+  tags:
+    - never
+    - install
+    - configure
+- name: Start Service
+  hosts: '{{ target }}'
+  gather_facts: false
+  vars_files:
+    - '{{ var_file }}'
+  roles:
+    - node_launch
+  tags:
+    - never
+    - install
+    - start
+
+
+#- name: Sync node from a snapshot
+#  hosts: '{{ target }}'
+#  gather_facts: false
+#  vars_files:
+#    - '{{ var_file }}'
+#  roles:
+#    - role: support_sync_snapshot
+#      when: recovery_mode_now is defined and recovery_mode_now == 'snap'
+#
+#- name: Start StateSync and Resync role
+#  hosts: '{{ target }}'
+#  gather_facts: false
+#  vars_files:
+#    - '{{ var_file }}'
+#  roles:
+#    - role: support_resync
+#      when: recovery_mode_now is defined and recovery_mode_now == 'resync'

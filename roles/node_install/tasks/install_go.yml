@@ -1,0 +1,62 @@
+---
+- name: Install go
+  ansible.builtin.shell: |
+    cd $HOME && ver="{{ go_version }}" 
+    wget https://golang.org/dl/go$ver.linux-amd64.tar.gz
+    rm -rf /usr/local/go
+    tar -C /usr/local -xzf go$ver.linux-amd64.tar.gz
+    rm go$ver.linux-amd64.tar.gz
+    echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> $HOME/.bash_profile
+    source $HOME/.bash_profile && go version
+  args:
+    executable: /bin/bash
+  become: true
+#  environment:
+#    PATH: '{{ path }}'
+
+- name: Go get cosmovisor
+  command: 'go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@{{ cosmovisor_version }}'
+  become: false
+  environment:
+    PATH: '{{ path }}'
+    GOPATH: '{{ user_dir }}/go'
+
+- name: Change home folder permission
+  file:
+    path: '{{ user_dir }}/'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    recurse: true
+    mode: '0755'
+
+- name: Change go folder permission
+  file:
+    path: '{{ user_dir }}/go'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    recurse: true
+    mode: '0755'
+
+- name: copy .profile
+  template:
+    src: 'profile.j2'
+    dest: '{{ user_dir }}/.profile'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    mode: '0600'
+
+- name: Add DAEMON_NAME line in .profile
+  lineinfile:
+    path: '{{ user_dir }}/.profile'
+    regexp: 'export DAEMON_NAME='
+    line: 'export DAEMON_NAME={{ daemon }}'
+    state: present
+  when: daemon is defined
+
+- name: Add DAEMON_HOME line in .profile
+  lineinfile:
+    path: '{{ user_dir }}/.profile'
+    regexp: 'export DAEMON_HOME='
+    line: 'export DAEMON_HOME=$HOME/{{ folder }}'
+    state: present
+  when: folder is defined

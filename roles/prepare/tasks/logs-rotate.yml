@@ -1,0 +1,68 @@
+---
+- name: Check logrotate is installed
+  apt:
+    name: logrotate
+    state: present
+#  when: ansible_os_family == "Debian"
+
+- name: Cretate logrotate for syslog
+  tags:
+    - logrotate
+  copy:
+    dest: /etc/logrotate.d/rsyslog
+    content: |
+      /var/log/syslog {
+          size 1024M
+          rotate 1
+          missingok
+          notifempty
+          delaycompress
+          postrotate
+              /usr/lib/rsyslog/rsyslog-rotate
+          endscript
+      }
+      /var/log/mail.log
+      /var/log/kern.log
+      /var/log/auth.log
+      /var/log/user.log
+      /var/log/cron.log
+      {
+              rotate 4
+              weekly
+              missingok
+              notifempty
+              compress
+              delaycompress
+              sharedscripts
+              postrotate
+                      /usr/lib/rsyslog/rsyslog-rotate
+              endscript
+      }
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Check configuration logrotate
+  tags:
+    - logrotate
+  command: logrotate -f /etc/logrotate.conf
+
+- name: Configure journald limits
+  tags:
+    - logrotate
+  blockinfile:
+    path: /etc/systemd/journald.conf
+    marker: "# {mark} ANSIBLE MANAGED JOURNALD LIMITS"
+    block: |
+      SystemMaxUse=500M
+      SystemKeepFree=100M
+      SystemMaxFileSize=100M
+      MaxRetentionSec=3day
+
+- name: Restart systemd-journald
+  tags:
+    - logrotate
+  systemd:
+    name: systemd-journald
+    state: restarted
+

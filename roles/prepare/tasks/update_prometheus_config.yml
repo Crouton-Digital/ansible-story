@@ -1,0 +1,36 @@
+---
+#- name: Initialize empty dictionary
+#  set_fact:
+#    hosts_dict: {}
+#
+#- name: Collect groups and hosts
+#  set_fact:
+#    hosts_dict: >-
+#          {{
+#            hosts_dict
+#            | combine({ item: query('inventory_hostnames', item) | map('extract', hostvars, 'ansible_host') })
+#          }}
+#  with_items: "{{ groups.keys() | difference(['all', 'ungrouped']) }}"
+#
+#- name: Show collected ansible_hosts
+#  debug:
+#    msg: "{{ hosts_dict['dedicated'] }}"
+#  run_once: true
+
+#- name: Clear target directory
+#  shell: rm -rf /opt/prometheus/volumes/prometheus/targets_dedicated/*.yaml
+#  delegate_facts: true
+#  delegate_to: monitoring
+#  run_once: true
+
+- name: Create prometheus configuration file
+  delegate_facts: true
+  delegate_to: monitoring
+  template:
+    src: 'templates/targets.yaml.j2'
+    dest: '/opt/prometheus/volumes/prometheus/targets_dedicated/{{ inventory_hostname }}.yaml'
+
+
+
+
+

@@ -1,0 +1,20 @@
+---
+- name: "Set timezone to {{ time_zone }}"
+  community.general.timezone:
+    name: "{{ time_zone }}"
+
+- name: Normalize hostname (replace underscores)
+  ansible.builtin.set_fact:
+    safe_hostname: "{{ inventory_hostname | lower | regex_replace('_', '-') | regex_replace('(^-+|-$)', '') }}"
+
+- name: Ensure hostname is valid-ish
+  ansible.builtin.assert:
+    that:
+      - safe_hostname is match('^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$')
+    fail_msg: "Invalid hostname after normalization: {{ safe_hostname }}"
+
+- name: Set hostname {{ safe_hostname }}
+  become: true
+  ansible.builtin.hostname:
+    name: "{{ safe_hostname }}"
+

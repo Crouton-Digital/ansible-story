@@ -1,0 +1,9 @@
+- targets:
+    - "{{ ansible_host }}:9100"
+    - "{{ ansible_host }}:9633"
+  labels:
+    instance: "{{ inventory_hostname }}"
+    hostname: "{{ inventory_hostname }}"
+    ip: "{{ ansible_host}}"
+
+

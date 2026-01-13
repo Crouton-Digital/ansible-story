@@ -1,0 +1,87 @@
+---
+- name: install apt packages
+  apt:
+    name: '{{item}}'
+    state: present
+    update_cache: yes
+  loop:
+    - make
+    - build-essential
+    - gcc
+    - git
+    - jq
+    - chrony
+    - lz4
+    - unzip
+    - nethogs
+    - htop
+    - atop
+    - iotop
+    - snapd
+    - smartmontools
+
+- name: SNAPD Install aria2c
+  community.general.snap:
+    name:
+      - aria2c
+
+- name: Clear tmp files
+  command: 'find /tmp/ -mindepth 1 -delete'
+  become: true
+  environment:
+    PATH: '{{ path }}'
+
+- name: Install go
+  ansible.builtin.shell: |
+    cd $HOME && ver="{{ go_version }}" 
+    wget https://golang.org/dl/go$ver.linux-amd64.tar.gz
+    rm -rf /usr/local/go
+    tar -C /usr/local -xzf go$ver.linux-amd64.tar.gz
+    rm go$ver.linux-amd64.tar.gz
+    echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> $HOME/.bash_profile
+    source $HOME/.bash_profile && go version
+  args:
+    executable: /bin/bash
+  become: true
+#  environment:
+#    PATH: '{{ path }}'
+
+- name: Change home folder permission
+  file:
+    path: '{{ user_dir }}/'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    recurse: true
+    mode: '0755'
+
+- name: Change go folder permission
+  file:
+    path: '{{ user_dir }}/go'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    recurse: true
+    mode: '0755'
+
+- name: copy .profile
+  template:
+    src: 'profile.j2'
+    dest: '{{ user_dir }}/.profile'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    mode: '0600'
+
+- name: Add DAEMON_NAME line in .profile
+  lineinfile:
+    path: '{{ user_dir }}/.profile'
+    regexp: 'export DAEMON_NAME='
+    line: 'export DAEMON_NAME={{ daemon }}'
+    state: present
+  when: daemon is defined
+
+- name: Add DAEMON_HOME line in .profile
+  lineinfile:
+    path: '{{ user_dir }}/.profile'
+    regexp: 'export DAEMON_HOME='
+    line: 'export DAEMON_HOME=$HOME/{{ folder }}'
+    state: present
+  when: folder is defined
