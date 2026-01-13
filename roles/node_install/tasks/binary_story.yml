@@ -57,7 +57,7 @@
     cmd: >
       story init
       --moniker {{ moniker }}
-      --network {{ chain_id }}
+      --network {{ network }}
   environment:
     PATH: '{{ path }}'
     GOPATH: '{{ user_dir }}/go'

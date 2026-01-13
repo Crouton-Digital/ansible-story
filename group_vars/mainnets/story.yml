@@ -31,5 +31,6 @@ config_toml: [
 
 story_toml: [
   { section: '',          option: 'engine-endpoint',  value: '"http://localhost:{{ custom_port_prefix }}551"' },
+  { section: '',          option: 'engine-jwt-file',  value: '"{{ user_dir }}/{{ folder }}/geth/story/geth/jwtsecret"' },
   { section: 'api',       option: 'address',          value: '"127.0.0.1:{{ custom_port_prefix }}317"'  },
 ]
